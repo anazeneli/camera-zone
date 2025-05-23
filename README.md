@@ -1,10 +1,6 @@
-# Module camera-zone 
+Module camera-zone 
 
-Provide a description of the purpose of the module and any relevant information.
-
-## Model azeneli:camera-zone:zone
-
-Provide a description of the model and any relevant information.
+This camera zone module allows you to draw polygon zones on viam camera component images. 
 
 ### Configuration
 The following attribute template can be used to configure this model:
@@ -67,4 +63,5 @@ The following attributes are available for this model:
 ### GetImage
 
 Returns a Viam Image with the zones drawn on mapped to the colors in zone_colors 
+
 
