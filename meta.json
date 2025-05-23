@@ -1,0 +1,28 @@
+{
+  "$schema": "https://dl.viam.dev/module.schema.json",
+  "module_id": "azeneli:camera-zone",
+  "visibility": "public",
+  "url": "",
+  "description": "Modular camera component: zone",
+  "models": [
+    {
+      "api": "rdk:component:camera",
+      "model": "azeneli:camera-zone:zone",
+      "short_description": "Provide a short (100 characters or less) description of this model here",
+      "markdown_link": "README.md#model-azenelicamera-zonezone"
+    }
+  ],
+  "applications": null,
+  "markdown_link": "README.md",
+  "entrypoint": "dist/main",
+  "first_run": "",
+  "build": {
+    "build": "./build.sh",
+    "setup": "./setup.sh",
+    "path": "dist/archive.tar.gz",
+    "arch": [
+      "linux/amd64",
+      "linux/arm64"
+    ]
+  }
+}

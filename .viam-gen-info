@@ -1,0 +1,13 @@
+{
+  "module_name": "camera-zone",
+  "namespace": "azeneli",
+  "language": "python",
+  "resource_type": "component",
+  "resource_subtype": "camera",
+  "model_name": "zone",
+  "enable_cloud_build": true,
+  "initialize_git": false,
+  "generator_version": "0.1.0",
+  "generated_on": "2025-05-23T15:31:36.513546618Z",
+  "module_readme_link": "README.md"
+}
