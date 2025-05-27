@@ -93,7 +93,7 @@ class Zone(Camera, EasyResource):
 
         # Safe to access zones directly since validate_config already checked it        
         self.zones = self.prepare_zones(attrs["zones"])       
-        self.zone_colors = self.prepare_zones(attrs["zone_colors"])       
+        self.zone_colors = attrs["zone_colors"]   
 
         self.dependencies = dependencies
         config_dict = struct_to_dict(config.attributes)
