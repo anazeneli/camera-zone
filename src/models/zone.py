@@ -91,14 +91,16 @@ class Zone(Camera, EasyResource):
         # ["zone1": [[x,y],[x,y]...], "zone2": [..]
         attrs = struct_to_dict(config.attributes)
 
+        # resolve & cache the child camera _once_
+        resource_name = Camera.get_resource_name(attrs["camera_name"])
+        self.child_camera = cast(Camera, dependencies[resource_name])
+
         # Safe to access zones directly since validate_config already checked it        
         self.zones = self.prepare_zones(attrs["zones"])       
         self.zone_colors = attrs["zone_colors"]   
 
         self.dependencies = dependencies
-        config_dict = struct_to_dict(config.attributes)
-        self.base_camera_name = config_dict["camera_name"] 
-
+        self.base_camera_name = attrs["camera_name"] 
 
         return super().reconfigure(config, dependencies)
 
@@ -119,21 +121,39 @@ class Zone(Camera, EasyResource):
 
         return zones
 
-
+    
     async def draw_zones(self, frame: np.ndarray) -> np.ndarray:
         """ 
-        Draw polygons specified in zones attribute.
+        Draw polygons specified in zones attribute with transparency.
 
         Args:
             frame (np.ndarray): The frame on which to draw the polygons.
 
         Returns:
-            np.ndarray: The frame with the polygons drawn.
+            np.ndarray: The frame with the transparent polygons drawn.
         """
-        for zone_name, polygon in self.zones.items():
-            color = self.zone_colors.get(zone_name, (255, 255, 255))  # Default to white if color not found
-            cv2.polylines(frame, [polygon.astype(np.int32)], isClosed=True, color=color, thickness=2)
-        return frame
+        # Create a copy of the frame to draw zones on, which will then be blended
+        overlay = frame.copy()
+        output_frame_with_zones = frame.copy()  # This will be the final blended frame
+        print(f"TRANSPARENT ")   
+        if self.zones:
+            for zone_name, polygon in self.zones.items():
+                zone_color = self.zone_colors.get(zone_name, (255, 255, 255))  # Default to white if color not found
+
+                if zone_color and polygon is not None:
+                    # Convert numpy array polygon to the format expected by cv2.fillPoly
+                    points = polygon.astype(np.int32)
+                
+                    # Draw the filled polygon on the overlay
+                    cv2.fillPoly(overlay, [points], zone_color)
+    
+        # Set transparency level (you can make this configurable)
+        alpha = 0.15  # alpha% transparency - adjust as needed
+    
+        # Blend the overlay (with filled polygons) with the output_frame
+        cv2.addWeighted(overlay, alpha, output_frame_with_zones, 1 - alpha, 0, output_frame_with_zones)
+    
+        return output_frame_with_zones
 
 
     async def get_image(
@@ -144,13 +164,13 @@ class Zone(Camera, EasyResource):
         timeout: Optional[float] = None,
         **kwargs
     ) -> ViamImage:
-        self.logger.error("`get_image` is not implemented")
 
-        zone_camera = self.dependencies[Camera.get_resource_name(self.base_camera_name)]
-        camera = cast(Camera, zone_camera)
-
-        frame = await camera.get_image() 
-
+        # zone_camera = self.dependencies[Camera.get_resource_name(self.base_camera_name)]
+        # camera = cast(Camera, zone_camera)
+        # frame = await camera.get_image() 
+        
+        # Get the child camera from dependencies
+        frame = await self.child_camera.get_image()
         # Store the original mime_type before conversion
         original_mime_type = frame.mime_type
 
@@ -174,8 +194,7 @@ class Zone(Camera, EasyResource):
     async def get_images(
         self, *, timeout: Optional[float] = None, **kwargs
     ) -> Tuple[List[NamedImage], ResponseMetadata]:
-        self.logger.error("`get_images` is not implemented")
-        raise NotImplementedError()
+        pass
 
     async def get_point_cloud(
         self,
@@ -184,14 +203,17 @@ class Zone(Camera, EasyResource):
         timeout: Optional[float] = None,
         **kwargs
     ) -> Tuple[bytes, str]:
-        self.logger.error("`get_point_cloud` is not implemented")
-        raise NotImplementedError()
+        pass
 
     async def get_properties(
         self, *, timeout: Optional[float] = None, **kwargs
     ) -> Camera.Properties:
-        self.logger.error("`get_properties` is not implemented")
-        raise NotImplementedError()
+        return GetPropertiesResponse(
+            supports_pcd=False,  # Set to True if your camera supports point clouds
+            intrinsic_parameters=None,  # Add your camera's intrinsic parameters if available
+            distortion_parameters=None  # Add distortion parameters if available
+        )
+    
 
     async def do_command(
         self,
@@ -199,13 +221,11 @@ class Zone(Camera, EasyResource):
         *,
         timeout: Optional[float] = None,
         **kwargs
-    ) -> Mapping[str, ValueTypes]:
-        self.logger.error("`do_command` is not implemented")
-        raise NotImplementedError()
+    ) -> Mapping[str, ValueTypes]: 
+        pass
 
     async def get_geometries(
         self, *, extra: Optional[Dict[str, Any]] = None, timeout: Optional[float] = None
-    ) -> List[Geometry]:
-        self.logger.error("`get_geometries` is not implemented")
-        raise NotImplementedError()
+    ) -> List[Geometry]: 
+        pass
 
