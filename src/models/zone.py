@@ -135,7 +135,7 @@ class Zone(Camera, EasyResource):
         # Create a copy of the frame to draw zones on, which will then be blended
         overlay = frame.copy()
         output_frame_with_zones = frame.copy()  # This will be the final blended frame
-        print(f"TRANSPARENT ")   
+        
         if self.zones:
             for zone_name, polygon in self.zones.items():
                 zone_color = self.zone_colors.get(zone_name, (255, 255, 255))  # Default to white if color not found
