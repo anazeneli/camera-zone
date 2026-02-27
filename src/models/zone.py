@@ -156,21 +156,23 @@ class Zone(Camera, EasyResource):
         return output_frame_with_zones
 
 
-    async def get_image(
-        self,
-        mime_type: str = "",
-        *,
-        extra: Optional[Dict[str, Any]] = None,
-        timeout: Optional[float] = None,
-        **kwargs
-    ) -> ViamImage:
+    # Use GetImages instead of GetImage
+    async def get_images(
+        self, *, timeout: Optional[float] = None, **kwargs
+    ) -> Tuple[List[NamedImage], ResponseMetadata]:
 
         # zone_camera = self.dependencies[Camera.get_resource_name(self.base_camera_name)]
         # camera = cast(Camera, zone_camera)
         # frame = await camera.get_image() 
         
         # Get the child camera from dependencies
-        frame = await self.child_camera.get_image()
+        images, metadata = await self.child_camera.get_images()
+        
+        # Process only the first image for now
+        if not images:
+            return [], metadata
+            
+        frame = images[0].image
         # Store the original mime_type before conversion
         original_mime_type = frame.mime_type
 
@@ -188,13 +190,8 @@ class Zone(Camera, EasyResource):
         zone_frame_pil = Image.fromarray(zone_frame)
         zone_frame_viam = pil_to_viam_image(zone_frame_pil, original_mime_type) 
 
-        return zone_frame_viam
+        return [NamedImage(images[0].name, zone_frame_viam)], metadata
     
-
-    async def get_images(
-        self, *, timeout: Optional[float] = None, **kwargs
-    ) -> Tuple[List[NamedImage], ResponseMetadata]:
-        pass
 
     async def get_point_cloud(
         self,
@@ -228,4 +225,3 @@ class Zone(Camera, EasyResource):
         self, *, extra: Optional[Dict[str, Any]] = None, timeout: Optional[float] = None
     ) -> List[Geometry]: 
         pass
-
